@@ -207,62 +207,42 @@ class Controller{
 class ControllerList{
   public:
     typedef void (*ControlFunction)(void*);
-    byte numControls = 0;
-    byte maxControls;
-    byte* listIDs;
-    byte* listControls;
-    ControlFunction* funcControls;
-    void** funcArgs;
     Controller* controller;
 
-    ControllerList(Controller* inController, byte inSize){
+    static const int MAX_CONTROLS = 12;
+    byte listIDs[MAX_CONTROLS];
+    byte listControls[MAX_CONTROLS];
+    ControlFunction funcControls[MAX_CONTROLS];
+    void* funcArgs[MAX_CONTROLS];
+    byte numControls = 0;
+
+
+    ControllerList(Controller* inController){
       controller = inController;
-      maxControls = inSize;
-      listControls = new byte[inSize];
-      listIDs = new byte[inSize];
-      funcControls = new ControlFunction[inSize];
-      funcArgs = new void*[inSize];
     }
 
-    void addControl(byte inID, byte inControl, ControlFunction inFunc, void* inArgs){
-      listIDs[numControls] = inID;
-      listControls[numControls] = inControl;
-      funcControls[numControls] = inFunc;
-      funcArgs[numControls] = inArgs;
-      numControls++;
+    void addControl(byte inID, byte inControl, ControlFunction inFunc, void* inArgs) {
+      if (numControls < MAX_CONTROLS) {
+          listIDs[numControls] = inID;
+          listControls[numControls] = inControl;
+          funcControls[numControls] = inFunc;
+          funcArgs[numControls] = inArgs;
+          numControls++;
+      }
     }
 
-    void clearControls(){
-
-      // Clear memory
-      delete[] listControls;
-      delete[] listIDs; 
-      delete[] funcControls;
-      delete[] funcArgs;
-
-      listControls = new byte[maxControls];
-      listIDs = new byte[maxControls];
-      funcControls = new ControlFunction[maxControls];
-      funcArgs = new void*[maxControls];
-
-      numControls = 0;
+    void clearControls() {
+        numControls = 0; // Simply reset the count, no need to delete memory
     }
 
-    void runControls(){
-      for( byte controlIndex = 0; controlIndex < numControls; ++controlIndex ){
-        if( controller -> isID(listIDs[controlIndex], listControls[controlIndex], 1) ){
-            // ((void (*)())(funcControls[controlIndex]))();
+    void runControls() {
+      for (byte controlIndex = 0; controlIndex < numControls; ++controlIndex) {
+        if (controller->isID(listIDs[controlIndex], listControls[controlIndex], 1)) {
             funcControls[controlIndex](funcArgs[controlIndex]);
         }
       }
     }
 
-    ~ControllerList(){
-        delete[] listControls;
-        delete[] listIDs; // Added to delete listIDs array
-        delete[] funcControls; // Use delete[] for array deletion
-        delete[] funcArgs;
-    }
 };
 
 #endif
